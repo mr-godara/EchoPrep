@@ -1,4 +1,4 @@
-# AI Mock Interview Platform
+# EchoPrep
 
 This project is split into two main parts: frontend and backend.
 
@@ -73,7 +73,7 @@ JWT_SECRET=your_jwt_secret
 npm run dev
 ```
 
-The backend API will be available at http://localhost:5000
+
 
 ## Features
 
