@@ -8,47 +8,66 @@ const SignupPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null); // Renamed
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signup, error } = useAuth();
+  const { signup } = useAuth(); // Removed error
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setValidationError(null);
+    setFormError(null); // Clear previous errors
 
     // Validate form
-    if (!name.trim()) {
-      setValidationError('Please enter your name');
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setFormError('Please enter your full name');
       return;
     }
 
     if (!email.trim()) {
-      setValidationError('Please enter your email');
+      setFormError('Please enter your email');
       return;
     }
 
     if (!password) {
-      setValidationError('Please enter a password');
+      setFormError('Please enter a password');
       return;
     }
 
     if (password.length < 6) {
-      setValidationError('Password must be at least 6 characters');
+      setFormError('Password must be at least 6 characters');
       return;
     }
 
     if (password !== confirmPassword) {
-      setValidationError('Passwords do not match');
+      setFormError('Passwords do not match');
       return;
     }
 
+    // Split name into firstName and lastName
+    const nameParts = trimmedName.split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
+
     setIsSubmitting(true);
     try {
-      await signup(name, email, password);
-      navigate('/setup');
+      const userData = {
+        firstName,
+        lastName: lastName || '', // Handle cases where only first name is entered
+        email: email.trim(),
+        password,
+        role: 'candidate' as 'candidate' | 'hr', // Default role for public signup
+        // company and position are optional and not collected here
+      };
+      await signup(userData); // Pass a single object
+      navigate('/setup'); // Navigate on successful signup
     } catch (err) {
-      // Error will be handled by the Auth context
+      if (err instanceof Error) {
+        setFormError(err.message);
+      } else {
+        setFormError('An unknown signup error occurred.');
+      }
+      console.error("Signup page error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -65,10 +84,10 @@ const SignupPage = () => {
             </p>
           </div>
 
-          {(validationError || error) && (
+          {formError && ( // Use formError here
             <div className="mb-6 flex items-start rounded-md bg-destructive/10 p-3 text-destructive">
               <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
-              <p>{validationError || error}</p>
+              <p>{formError}</p>
             </div>
           )}
 

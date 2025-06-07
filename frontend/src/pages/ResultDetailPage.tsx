@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'; // Removed React
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'; // Added useLocation
 import { BarChart, Trophy, Target, AlertCircle, Share2, Download, Printer, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { formatDate } from '../lib/utils.js';
-import { useAuth } from '../contexts/AuthContext.js'; // Import useAuth
+// import { useAuth } from '../contexts/AuthContext.js'; // user is no longer used here
 
 // Define the interface for the interview result
 interface InterviewAnswer {
@@ -39,7 +39,7 @@ const ResultDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation(); // Get location to access query params
-  const { user } = useAuth();
+  // const { user } = useAuth(); // user is no longer used for access control here
   const [result, setResult] = useState<InterviewResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,9 +62,9 @@ const ResultDetailPage = () => {
         let fetchUrl = `/api/interview-results/${id}`; // Default: fetch by result's direct _id
         if (idType === 'schedule' && id) {
           fetchUrl = `/api/interview-results/interview/${id}`; // Fetch by scheduled interview ID
-          console.log(`[ResultDetailPage] Fetching by schedule ID: ${id} using URL: ${fetchUrl}`);
+          // console.log(`[ResultDetailPage] Fetching by schedule ID: ${id} using URL: ${fetchUrl}`);
         } else if (id) {
-          console.log(`[ResultDetailPage] Fetching by result ID: ${id} using URL: ${fetchUrl}`);
+          // console.log(`[ResultDetailPage] Fetching by result ID: ${id} using URL: ${fetchUrl}`);
         }
 
         const response = await fetch(fetchUrl, {
@@ -89,10 +89,10 @@ const ResultDetailPage = () => {
     };
 
     if (id) {
-      console.log(`[ResultDetailPage] Fetching result for interview ID from URL: ${id}`);
+      // console.log(`[ResultDetailPage] Fetching result for interview ID from URL: ${id}`);
       fetchInterviewResult();
     } else {
-      console.log("[ResultDetailPage] No ID in URL params.");
+      // console.log("[ResultDetailPage] No ID in URL params.");
       setError("No interview ID provided to fetch results.");
       setIsLoading(false);
     }

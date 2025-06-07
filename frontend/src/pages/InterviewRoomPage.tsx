@@ -64,12 +64,12 @@ const InterviewRoomPage = () => {
         // Store the interview room ID in localStorage for later reference
         if (id) {
           localStorage.setItem('interviewRoomId', id);
-          console.log("Stored interview room ID in localStorage:", id);
+          // console.log("Stored interview room ID in localStorage:", id);
           
           // Also store the direct interview ID if available
           if (data._id) {
             sessionStorage.setItem('currentInterviewId', data._id);
-            console.log("Stored interview ID in sessionStorage:", data._id);
+            // console.log("Stored interview ID in sessionStorage:", data._id);
           }
         }
         
@@ -292,7 +292,7 @@ const InterviewRoomPage = () => {
         interviewId: interview._id
       });
       
-      console.log("Starting interview with ID:", interview._id);
+      // console.log("Starting interview with ID:", interview._id);
     navigate('/interview');
     } else {
       setError('Camera and microphone are required for the interview');

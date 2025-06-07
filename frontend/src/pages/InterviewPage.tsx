@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react'; // Removed React
 import { useNavigate } from 'react-router-dom';
 import { useInterview } from '../contexts/InterviewContext';
 import QuestionDisplay from '../components/Interview/QuestionDisplay';
@@ -55,18 +55,18 @@ declare global {
   }
 }
 
-// Define types for Gemini API responses
-interface GeminiQuestionResponse {
-  question: string;
-  context?: string;
-}
+// Define types for Gemini API responses (Currently unused, remove if not planned for this page)
+// interface GeminiQuestionResponse {
+//   question: string;
+//   context?: string;
+// }
 
-interface GeminiAnalysisResponse {
-  score: number;
-  feedback: string;
-  strengths: string[];
-  weaknesses: string[];
-}
+// interface GeminiAnalysisResponse {
+//   score: number;
+//   feedback: string;
+//   strengths: string[];
+//   weaknesses: string[];
+// }
 
 const QUESTION_TIME_LIMIT = 180; // 3 minutes per question
 const CAMERA_RETRY_ATTEMPTS = 3;
@@ -111,7 +111,11 @@ const InterviewPage = () => {
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   
   // State for recording functionality
-  const [recordingTime, setRecordingTime] = useState(0);
+  // const [recordingTime, setRecordingTime] = useState(0); // recordingTime is unread, setRecordingTime is used.
+                                                          // If recordingTime is not needed for display/logic, remove both.
+                                                          // For now, addressing the direct "unread" error.
+                                                          // Let's assume setRecordingTime is still needed for the timer logic.
+  const [, setRecordingTime] = useState(0); // Keep setter if logic depends on it, remove value if unread.
   const [answer, setAnswer] = useState('');
   
   // UI status states
@@ -129,7 +133,10 @@ const InterviewPage = () => {
   const [isCameraSetupFailed, setIsCameraSetupFailed] = useState(false);
   
   // Add overall interview time tracking
-  const [totalInterviewTime, setTotalInterviewTime] = useState(0);
+  // const [totalInterviewTime, setTotalInterviewTime] = useState(0); // totalInterviewTime is unread.
+                                                                  // setTotalInterviewTime is used.
+                                                                  // If not displayed here, remove.
+  const [, setTotalInterviewTime] = useState(0); // Keep setter, remove value if unread on this page.
   const [interviewTimeRemaining, setInterviewTimeRemaining] = useState(0);
   const [isInterviewTimeInitialized, setIsInterviewTimeInitialized] = useState(false);
   
@@ -137,7 +144,7 @@ const InterviewPage = () => {
   
   // Modified initial startup with camera retry logic
   useEffect(() => {
-    console.log("Initial startup effect running");
+    // console.log("Initial startup effect running");
     // Set a flag after initial render to prevent immediate redirects
     // and give time for camera initialization
     const initTimer = setTimeout(() => {
@@ -153,10 +160,10 @@ const InterviewPage = () => {
     // not currently initializing media, and haven't exhausted retry attempts.
     if (!mediaStream && isInterviewInProgress && !isLoadingQuestions && !isInitializingMedia && cameraAttempts < CAMERA_RETRY_ATTEMPTS) {
       const attemptToGetMediaViaContext = async () => {
-        console.log(`[InterviewPage] Attempting to get media via context retry (attempt ${cameraAttempts + 1} of ${CAMERA_RETRY_ATTEMPTS})`);
+        // console.log(`[InterviewPage] Attempting to get media via context retry (attempt ${cameraAttempts + 1} of ${CAMERA_RETRY_ATTEMPTS})`);
         const success = await retryMediaStream(); // This function is from useInterview context
         if (success) {
-          console.log("[InterviewPage] retryMediaStream reported success. Video setup effect should run.");
+          // console.log("[InterviewPage] retryMediaStream reported success. Video setup effect should run.");
           // setCameraAttempts(0); // Optionally reset attempts on success
         } else {
           console.warn(`[InterviewPage] retryMediaStream reported failure on attempt ${cameraAttempts + 1}.`);
@@ -172,7 +179,7 @@ const InterviewPage = () => {
       // Add a delay before trying to get camera access again.
       // Increase delay for subsequent attempts to avoid hammering the API or browser.
       const delay = CAMERA_RETRY_DELAY * (cameraAttempts + 1);
-      console.log(`[InterviewPage] Scheduling media retry attempt ${cameraAttempts + 1} in ${delay}ms.`);
+      // console.log(`[InterviewPage] Scheduling media retry attempt ${cameraAttempts + 1} in ${delay}ms.`);
       const retryTimer = setTimeout(() => {
         attemptToGetMediaViaContext();
       }, delay);
@@ -183,10 +190,10 @@ const InterviewPage = () => {
   
   // Enhanced video setup with improved troubleshooting
   useEffect(() => {
-    console.log("Media stream status:", mediaStream ? "Available" : "Not available");
+    // console.log("Media stream status:", mediaStream ? "Available" : "Not available");
     
     if (mediaStream && videoRef.current) {
-      console.log("Setting up video element with media stream");
+      // console.log("Setting up video element with media stream");
       try {
         // Set the srcObject property
         videoRef.current.srcObject = mediaStream;
@@ -202,7 +209,7 @@ const InterviewPage = () => {
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log("Video playback started successfully");
+              // console.log("Video playback started successfully");
               setCameraConnected(true);
 
               // Auto-speak the FIRST question only after video has successfully started
@@ -217,9 +224,9 @@ const InterviewPage = () => {
                 if (timerRef.current) {
                     window.clearInterval(timerRef.current);
                     timerRef.current = null;
-                    console.log("[InterviewPage] Video effect: Explicitly cleared timerRef before speaking first question.");
+                    // console.log("[InterviewPage] Video effect: Explicitly cleared timerRef before speaking first question.");
                 }
-                console.log(`[InterviewPage] Video started, auto-speaking first question ID: ${currentQuestion.id}`);
+                // console.log(`[InterviewPage] Video started, auto-speaking first question ID: ${currentQuestion.id}`);
                 readQuestionAloud();
                 setSpokenQuestionIds(prev => {
                   const updated = new Set(prev);
@@ -233,7 +240,7 @@ const InterviewPage = () => {
               // Try one more time with a delay
               setTimeout(() => {
                 if (videoRef.current) {
-                  console.log("Attempting to play video again...");
+                  // console.log("Attempting to play video again...");
                   videoRef.current.play()
                     .then(() => setCameraConnected(true))
                     .catch(e => {
@@ -300,7 +307,7 @@ const InterviewPage = () => {
   // Updated redirect for interview not in progress with better timing and camera failure
   useEffect(() => {
     if (initialStartupComplete && !isInterviewInProgress && !isLoadingQuestions) {
-      console.log("Interview not in progress, redirecting to setup");
+      // console.log("Interview not in progress, redirecting to setup");
       navigate('/setup', { state: { error: 'Interview not started or timed out' } });
       return;
     }
@@ -330,7 +337,7 @@ const InterviewPage = () => {
       
       // Clear any existing timer interval ONLY when the question ID actually changes
       if (timerRef.current) {
-        console.log(`[InterviewPage] New question (ID: ${currentQuestion.id}), clearing existing timerRef: ${timerRef.current}`);
+        // console.log(`[InterviewPage] New question (ID: ${currentQuestion.id}), clearing existing timerRef: ${timerRef.current}`);
         window.clearInterval(timerRef.current);
         timerRef.current = null;
       }
@@ -348,18 +355,18 @@ const InterviewPage = () => {
       if (timerRef.current) {
           window.clearInterval(timerRef.current);
           timerRef.current = null;
-          console.log(`[InterviewPage] Auto-speak effect: Explicitly cleared timerRef before speaking QID: ${currentQuestion.id}`);
+          // console.log(`[InterviewPage] Auto-speak effect: Explicitly cleared timerRef before speaking QID: ${currentQuestion.id}`);
       }
       // This check ensures this effect primarily handles questions *after* the first,
       // or the first if the video effect didn't manage to speak it and set spokenQuestionIds.
       // The video effect should set spokenQuestionIds for the first question.
-      console.log(`[InterviewPage] Auto-speak check for QID: ${currentQuestion.id}. Spoken: ${spokenQuestionIds.has(currentQuestion.id)}, Camera: ${cameraConnected}, Not Reading: ${!isReading}`);
+      // console.log(`[InterviewPage] Auto-speak check for QID: ${currentQuestion.id}. Spoken: ${spokenQuestionIds.has(currentQuestion.id)}, Camera: ${cameraConnected}, Not Reading: ${!isReading}`);
 
       // Small delay to ensure UI is updated and video is stable before speaking
       const speakTimeout = setTimeout(() => {
         // Double-check conditions inside timeout, especially isReading and spokenQuestionIds
         if (currentQuestion && currentQuestion.id && !spokenQuestionIds.has(currentQuestion.id) && !isReading) {
-          console.log(`[InterviewPage] Auto-speaking question ${currentQuestionIndex + 1} (QID: ${currentQuestion.id}) from dedicated auto-speak useEffect.`);
+          // console.log(`[InterviewPage] Auto-speaking question ${currentQuestionIndex + 1} (QID: ${currentQuestion.id}) from dedicated auto-speak useEffect.`);
           readQuestionAloud();
           setSpokenQuestionIds(prev => {
             const updated = new Set(prev);
@@ -367,7 +374,7 @@ const InterviewPage = () => {
             return updated;
           });
         } else {
-          console.log(`[InterviewPage] Auto-speak conditions no longer met in timeout for QID: ${currentQuestion?.id}. Spoken: ${spokenQuestionIds.has(currentQuestion?.id || '')}, Not Reading: ${!isReading}`);
+          // console.log(`[InterviewPage] Auto-speak conditions no longer met in timeout for QID: ${currentQuestion?.id}. Spoken: ${spokenQuestionIds.has(currentQuestion?.id || '')}, Not Reading: ${!isReading}`);
         }
       }, 800);
       
@@ -406,12 +413,12 @@ const InterviewPage = () => {
     }
     
     utterance.onstart = () => {
-      console.log('Started speaking question');
+      // console.log('Started speaking question');
       setIsReading(true);
     };
     
     utterance.onend = () => {
-      console.log('Finished speaking question');
+      // console.log('Finished speaking question');
       setIsReading(false);
       // Automatically start recording (which includes the timer) if:
       // 1. Not already recording.
@@ -422,15 +429,16 @@ const InterviewPage = () => {
       if (currentQuestion && currentQuestion.id && !isRecording && synthesisRef.current?.text === currentQuestion.text) {
         const existingAnswerForCurrentQuestion = answers.find(a => a.questionId === currentQuestion.id);
         if (!existingAnswerForCurrentQuestion?.text) {
-            console.log(`[InterviewPage] Auto-starting recording & timer for question ID ${currentQuestion.id} as it finished speaking.`);
+            // console.log(`[InterviewPage] Auto-starting recording & timer for question ID ${currentQuestion.id} as it finished speaking.`);
             startRecording();
         } else {
-            console.log(`[InterviewPage] Question ID ${currentQuestion.id} finished speaking, but an answer already exists. Not auto-starting.`);
+            // console.log(`[InterviewPage] Question ID ${currentQuestion.id} finished speaking, but an answer already exists. Not auto-starting.`);
         }
       } else {
-          if (!currentQuestion || !currentQuestion.id) console.log("[InterviewPage] Question finished speaking, but currentQuestion is invalid.");
-          if (isRecording) console.log("[InterviewPage] Question finished speaking, but recording is already active.");
-          if (synthesisRef.current?.text !== currentQuestion?.text) console.log("[InterviewPage] Question finished speaking, but active question seems to have changed or utterance mismatch.");
+          // Original if conditions were for logging only and are now empty.
+          // // console.log("[InterviewPage] Question finished speaking, but currentQuestion is invalid.");
+          // // console.log("[InterviewPage] Question finished speaking, but recording is already active.");
+          // // console.log("[InterviewPage] Question finished speaking, but active question seems to have changed or utterance mismatch.");
       }
     };
     
@@ -487,9 +495,9 @@ const InterviewPage = () => {
 
   // Start recording answer
   const startRecording = () => {
-    console.log(`[InterviewPage] startRecording called. isRecording: ${isRecording}, timerRef.current: ${timerRef.current}`);
+    // console.log(`[InterviewPage] startRecording called. isRecording: ${isRecording}, timerRef.current: ${timerRef.current}`);
     if (isRecording) {
-      console.log("[InterviewPage] startRecording: Already recording, returning.");
+      // console.log("[InterviewPage] startRecording: Already recording, returning.");
       return;
     }
     
@@ -509,12 +517,12 @@ const InterviewPage = () => {
     
     // Start timer for this question
     if (timerRef.current === null) {
-      console.log("[InterviewPage] startRecording: timerRef.current is null, setting up new interval.");
+      // console.log("[InterviewPage] startRecording: timerRef.current is null, setting up new interval.");
       timerRef.current = window.setInterval(() => {
         setTimeRemaining(prev => {
-          // console.log(`[InterviewPage] timerRef interval firing. Current timeRemaining: ${prev}, isRecording: ${isRecording}`); // Reduced logging
+          // // console.log(`[InterviewPage] timerRef interval firing. Current timeRemaining: ${prev}, isRecording: ${isRecording}`); // Reduced logging
           if (prev <= 1) {
-            console.log("[InterviewPage] Question Timer: Time is up!");
+            // console.log("[InterviewPage] Question Timer: Time is up!");
             if(isRecording) stopRecording();
             handleSubmitAnswer();
             return 0;
@@ -527,11 +535,11 @@ const InterviewPage = () => {
         }
       }, 1000);
     } else {
-      console.log(`[InterviewPage] startRecording: timerRef.current is NOT null (${timerRef.current}), timer not started or already running.`);
+      // console.log(`[InterviewPage] startRecording: timerRef.current is NOT null (${timerRef.current}), timer not started or already running.`);
     }
     
     setIsRecording(true);
-    console.log("[InterviewPage] startRecording: setIsRecording(true) now.");
+    // console.log("[InterviewPage] startRecording: setIsRecording(true) now.");
   };
 
   // Stop recording answer
@@ -587,7 +595,7 @@ const InterviewPage = () => {
       
       // Check if this was the last question
       if (currentQuestionIndex >= questions.length - 1) {
-        console.log("Last question answered, completing interview...");
+        // console.log("Last question answered, completing interview...");
         
         // Get interview ID from session storage or local storage
         const interviewId = sessionStorage.getItem('currentInterviewId');
@@ -599,7 +607,7 @@ const InterviewPage = () => {
             const token = localStorage.getItem('token');
             
             if (interviewId) {
-              console.log(`Marking interview ${interviewId} as completed`);
+              // console.log(`Marking interview ${interviewId} as completed`);
               try {
                 await fetch(`/api/interviews/auto-complete/${interviewId}`, {
                   method: 'PUT',
@@ -608,14 +616,14 @@ const InterviewPage = () => {
                     'Authorization': token ? `Bearer ${token}` : '',
                   }
                 });
-                console.log("Successfully completed interview via ID");
+                // console.log("Successfully completed interview via ID");
     } catch (err) {
                 console.error("Error completing interview via ID:", err);
     }
             }
             
             if (roomId) {
-              console.log(`Marking interview room ${roomId} as completed`);
+              // console.log(`Marking interview room ${roomId} as completed`);
               try {
                 await fetch(`/api/interviews/room/${roomId}/complete`, {
                   method: 'PUT',
@@ -624,7 +632,7 @@ const InterviewPage = () => {
                     'Authorization': token ? `Bearer ${token}` : '',
                   }
                 });
-                console.log("Successfully completed interview via room ID");
+                // console.log("Successfully completed interview via room ID");
               } catch (err) {
                 console.error("Error completing interview via room ID:", err);
       }
@@ -633,7 +641,7 @@ const InterviewPage = () => {
             console.error("Error marking interview as complete:", error);
           }
         } else {
-          console.log("No interview ID found to mark as completed");
+          // console.log("No interview ID found to mark as completed");
         }
         
         // Finish the interview and navigate to results
@@ -672,7 +680,7 @@ const InterviewPage = () => {
     }
       
     if (currentQuestionIndex >= questions.length - 1) {
-      console.log("Last question skipped, completing interview...");
+      // console.log("Last question skipped, completing interview...");
       
       // Get interview ID from session storage or local storage
       const interviewId = sessionStorage.getItem('currentInterviewId');
@@ -684,7 +692,7 @@ const InterviewPage = () => {
           const token = localStorage.getItem('token');
           
           if (interviewId) {
-            console.log(`Marking interview ${interviewId} as completed`);
+            // console.log(`Marking interview ${interviewId} as completed`);
             try {
               await fetch(`/api/interviews/auto-complete/${interviewId}`, {
                 method: 'PUT',
@@ -693,14 +701,14 @@ const InterviewPage = () => {
                   'Authorization': token ? `Bearer ${token}` : '',
                 }
               });
-              console.log("Successfully completed interview via ID");
+              // console.log("Successfully completed interview via ID");
             } catch (err) {
               console.error("Error completing interview via ID:", err);
             }
           }
           
           if (roomId) {
-            console.log(`Marking interview room ${roomId} as completed`);
+            // console.log(`Marking interview room ${roomId} as completed`);
             try {
               await fetch(`/api/interviews/room/${roomId}/complete`, {
                 method: 'PUT',
@@ -709,7 +717,7 @@ const InterviewPage = () => {
                   'Authorization': token ? `Bearer ${token}` : '',
                 }
               });
-              console.log("Successfully completed interview via room ID");
+              // console.log("Successfully completed interview via room ID");
             } catch (err) {
               console.error("Error completing interview via room ID:", err);
             }
@@ -718,7 +726,7 @@ const InterviewPage = () => {
           console.error("Error marking interview as complete:", error);
         }
       } else {
-        console.log("No interview ID found to mark as completed");
+        // console.log("No interview ID found to mark as completed");
       }
       
       // Finish the interview and navigate to results
@@ -752,18 +760,18 @@ const InterviewPage = () => {
   useEffect(() => {
     // Start the interview if it's not already in progress
     if (!isInterviewInProgress && !isInitializingMedia) {
-      console.log("Starting interview from InterviewPage");
+      // console.log("Starting interview from InterviewPage");
       startInterview();
     }
     
     // Only set video source if we have a mediaStream and a valid videoRef
     if (mediaStream && videoRef.current) {
-      console.log("Setting media stream to video element");
+      // console.log("Setting media stream to video element");
       videoRef.current.srcObject = mediaStream;
       
       // Handle successful video load
       const handleVideoLoad = () => {
-        console.log("Video loaded successfully");
+        // console.log("Video loaded successfully");
         setIsLoading(false);
       };
       
@@ -791,28 +799,28 @@ const InterviewPage = () => {
 
   // Add new useEffect for tracking overall interview time
   useEffect(() => {
-    console.log(`[InterviewPage] Total interview timer useEffect running. Qs: ${questions.length}, InProgress: ${isInterviewInProgress}, Initialized: ${isInterviewTimeInitialized}`);
+    // console.log(`[InterviewPage] Total interview timer useEffect running. Qs: ${questions.length}, InProgress: ${isInterviewInProgress}, Initialized: ${isInterviewTimeInitialized}`);
     // Initialize interview timer when questions are loaded and interview starts
     if (questions.length > 0 && isInterviewInProgress) { // Condition changed: removed !isInterviewTimeInitialized for setInterval
       
       // Set initial time remaining and flag only if not already initialized
       if (!isInterviewTimeInitialized) {
-        console.log("[InterviewPage] Total interview timer: Initializing time and flag.");
+        // console.log("[InterviewPage] Total interview timer: Initializing time and flag.");
         const TOTAL_INTERVIEW_TIME = questions.length * QUESTION_TIME_LIMIT;
         setInterviewTimeRemaining(TOTAL_INTERVIEW_TIME);
         setIsInterviewTimeInitialized(true);
-        console.log(`[InterviewPage] Total interview timer: Set initial interviewTimeRemaining to ${TOTAL_INTERVIEW_TIME}, isInterviewTimeInitialized to true.`);
+        // console.log(`[InterviewPage] Total interview timer: Set initial interviewTimeRemaining to ${TOTAL_INTERVIEW_TIME}, isInterviewTimeInitialized to true.`);
       }
       
       // Start the overall interview timer if it's not already running
       if (!interviewTimerRef.current) { // Check if timer is not already set
-        console.log("[InterviewPage] Total interview timer: Setting up setInterval for interviewTimerRef.");
+        // console.log("[InterviewPage] Total interview timer: Setting up setInterval for interviewTimerRef.");
         interviewTimerRef.current = window.setInterval(() => {
-        console.log("[InterviewPage] interviewTimerRef interval FIRED.");
+        // console.log("[InterviewPage] interviewTimerRef interval FIRED.");
         setInterviewTimeRemaining(prev => {
           // This state update for total time should be reliable
           setTotalInterviewTime(currentTime => {
-            console.log(`[InterviewPage] Incrementing totalInterviewTime from ${currentTime} to ${currentTime + 1}`);
+            // console.log(`[InterviewPage] Incrementing totalInterviewTime from ${currentTime} to ${currentTime + 1}`);
             return currentTime + 1;
           });
           
@@ -848,18 +856,18 @@ const InterviewPage = () => {
       
       // This cleanup function should be returned by the main 'if' block of the useEffect
       return () => {
-        console.log("[InterviewPage] Cleanup for Total interview timer useEffect. Clearing interval if exists:", interviewTimerRef.current);
+        // console.log("[InterviewPage] Cleanup for Total interview timer useEffect. Clearing interval if exists:", interviewTimerRef.current);
         if (interviewTimerRef.current) {
           clearInterval(interviewTimerRef.current);
           interviewTimerRef.current = null;
-          console.log("[InterviewPage] Total interview timer: Interval CLEARED.");
+          // console.log("[InterviewPage] Total interview timer: Interval CLEARED.");
         }
       };
     } else { // This 'else' corresponds to 'if (questions.length > 0 && isInterviewInProgress)'
-      console.log(`[InterviewPage] Total interview timer: Conditions NOT MET. Qs: ${questions.length}, InProgress: ${isInterviewInProgress}, Initialized: ${isInterviewTimeInitialized}`);
+      // console.log(`[InterviewPage] Total interview timer: Conditions NOT MET. Qs: ${questions.length}, InProgress: ${isInterviewInProgress}, Initialized: ${isInterviewTimeInitialized}`);
       // Ensure any existing timer is cleared if conditions are no longer met
       if (interviewTimerRef.current) {
-        console.log("[InterviewPage] Total interview timer: Conditions no longer met, clearing existing timer:", interviewTimerRef.current);
+        // console.log("[InterviewPage] Total interview timer: Conditions no longer met, clearing existing timer:", interviewTimerRef.current);
         clearInterval(interviewTimerRef.current);
         interviewTimerRef.current = null;
       }

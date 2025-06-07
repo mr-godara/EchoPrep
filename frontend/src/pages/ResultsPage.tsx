@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatDate } from '../lib/utils.js';
 
 const ResultsPage = () => {
-  const { result: contextResult, isInterviewComplete, config: contextConfig, questions: contextQuestions, isHrScheduledInterview: contextIsHrScheduled } = useInterview();
+  const { result: contextResult, isInterviewComplete, config: contextConfig, /* questions: contextQuestions, */ isHrScheduledInterview: contextIsHrScheduled } = useInterview(); // Removed contextQuestions
   const { user } = useAuth();
   const navigate = useNavigate();
   const { interviewId } = useParams<{ interviewId?: string }>();
@@ -15,15 +15,11 @@ const ResultsPage = () => {
   const [isLoadingPageResult, setIsLoadingPageResult] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
-  // Determine which result and config to display
+  
   const displayResult = interviewId ? pageResult : contextResult;
-  // Config might also need to be fetched if viewing a specific result not from current context
-  // For now, assume config from context is sufficient or result object contains necessary details like jobRole/level if fetched.
-  // A more robust solution would fetch full interview details including config if interviewId is present.
+  
   const displayConfig = contextConfig;
-  const displayIsHrScheduled = interviewId ? pageResult?.isHrScheduled : (contextResult?.isHrScheduled || contextIsHrScheduled);
-
-  // Effect to fetch specific result if interviewId is in URL
+  
   useEffect(() => {
     if (interviewId) {
       const fetchResultById = async (id: string) => {
@@ -34,11 +30,10 @@ const ResultsPage = () => {
           const token = localStorage.getItem('token');
           if (!token) {
             setPageError("Authentication required to view this result.");
-            // Consider navigating to login if critical: navigate('/login');
+           
             return;
           }
-          // TODO: Ensure this API endpoint exists and returns InterviewResult structure
-          // For now, assuming it returns the full InterviewResult object including 'isHrScheduled'
+         
           const response = await fetch(`/api/interview-results/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
@@ -58,23 +53,19 @@ const ResultsPage = () => {
       };
       fetchResultById(interviewId);
     } else {
-      // No interviewId in URL, clear any fetched pageResult and error
       setPageResult(null);
       setPageError(null);
     }
   }, [interviewId]); // Rerun if interviewId changes
 
-  // Effect for initial redirect if no ID in URL and context result isn't ready
   useEffect(() => {
     if (!interviewId && !isInterviewComplete && !contextResult) {
-      console.log("[ResultsPage] Context: Interview not complete and no context result, redirecting to /setup.");
+      
       navigate('/setup');
     }
   }, [interviewId, isInterviewComplete, contextResult, navigate]);
 
-  // Access control logic removed as per new requirement for users/candidates to view HR scheduled results.
-
-  // Loading state for page-specific result
+  
   if (interviewId && isLoadingPageResult) {
     return (
       <div className="page-transition flex min-h-[80vh] items-center justify-center">
@@ -104,8 +95,7 @@ const ResultsPage = () => {
   
   // Loading state for context result (if no ID in URL and not yet loaded)
   if (!interviewId && !contextResult) {
-    // This handles the case where interview is complete but contextResult is still null (e.g. async update from finishInterview)
-    // The initial redirect useEffect might have already navigated away if !isInterviewComplete.
+   
     return (
       <div className="page-transition flex min-h-[80vh] items-center justify-center">
         <div className="text-center">
@@ -135,8 +125,7 @@ const ResultsPage = () => {
 
   // Use displayResult for rendering the page content
   const currentResultToDisplay = displayResult;
-  // Use displayConfig for job role/level, ensure it's valid
-  // These details come from the InterviewConfig, not directly from InterviewResult
+  
   const jobRoleDisplay = displayConfig?.jobRole || "N/A";
   const experienceLevelDisplay = displayConfig?.experienceLevel || "N/A";
 

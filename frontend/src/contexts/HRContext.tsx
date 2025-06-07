@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react'; // Removed React
 import { v4 as uuidv4 } from 'uuid';
-import { addMinutes, format } from 'date-fns';
+// Removed unused import: import { addMinutes, format } from 'date-fns';
 
 export interface ScheduledInterview {
   id: string;

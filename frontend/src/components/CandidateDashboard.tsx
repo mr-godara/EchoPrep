@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, Award, ArrowRight, ChevronRight, Tag, Clipboard } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, ChevronRight, Tag, Clipboard } from 'lucide-react'; // Removed Award
 import { format } from 'date-fns';
 
 // Types for our interview data

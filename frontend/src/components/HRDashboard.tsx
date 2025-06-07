@@ -34,7 +34,7 @@ const HRDashboard: React.FC = () => {
     experienceLevel: 'mid-level', // Default experience level
   });
   const [error, setError] = useState<string>('');
-  const [interviewResults, setInterviewResults] = useState<Record<string, any>>({});
+  // const [interviewResults, setInterviewResults] = useState<Record<string, any>>({}); // Unused
 
   useEffect(() => {
     fetchInterviews();

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useHR } from '../contexts/HRContext';
-import { Calendar, Clock, Users, Link as LinkIcon, XCircle, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, Users, Link as LinkIcon, XCircle } from 'lucide-react'; // Removed CheckCircle
 import { format, addMinutes } from 'date-fns';
 
 const HRDashboardPage = () => {
@@ -14,14 +14,14 @@ const HRDashboardPage = () => {
   const handleScheduleInterview = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const interview = scheduleInterview(
+    scheduleInterview(
       employeeEmail,
       jobRole,
       new Date(scheduledTime),
       duration
     );
 
-    // Reset form
+    
     setEmployeeEmail('');
     setJobRole('');
     setScheduledTime('');

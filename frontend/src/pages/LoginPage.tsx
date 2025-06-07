@@ -6,32 +6,38 @@ import { AlertCircle } from 'lucide-react';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null); 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, error } = useAuth();
+  const { login } = useAuth(); 
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setValidationError(null);
+    setFormError(null); 
 
     // Validate form
     if (!email.trim()) {
-      setValidationError('Please enter your email');
+      setFormError('Please enter your email');
       return;
     }
 
     if (!password) {
-      setValidationError('Please enter your password');
+      setFormError('Please enter your password');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await login(email, password);
-      navigate('/setup');
+      navigate('/setup'); // Navigate on successful login
     } catch (err) {
-      // Error will be handled by the Auth context
+      // Handle errors thrown by the login function from AuthContext
+      if (err instanceof Error) {
+        setFormError(err.message);
+      } else {
+        setFormError('An unknown login error occurred.');
+      }
+      console.error("Login page error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -48,10 +54,10 @@ const LoginPage = () => {
             </p>
           </div>
 
-          {(validationError || error) && (
+          {formError && ( // Use formError here
             <div className="mb-6 flex items-start rounded-md bg-destructive/10 p-3 text-destructive">
               <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
-              <p>{validationError || error}</p>
+              <p>{formError}</p>
             </div>
           )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react'; // Removed useRef
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Briefcase as BriefcaseBusiness, GraduationCap, Code, Brain, Palette, Database } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,7 +14,7 @@ interface RoleCardProps {
   onSelect: () => void;
 }
 
-const RoleCard = ({ id, title, icon, description, selected, onSelect }: RoleCardProps) => (
+const RoleCard = ({ title, icon, description, selected, onSelect }: RoleCardProps) => ( // Removed id
   <div
     className={cn(
       "card relative cursor-pointer border-2 transition-all duration-200",
@@ -39,7 +39,7 @@ interface LevelCardProps {
   onSelect: () => void;
 }
 
-const LevelCard = ({ id, title, description, selected, onSelect }: LevelCardProps) => (
+const LevelCard = ({ title, description, selected, onSelect }: LevelCardProps) => ( // Removed id
   <div
     className={cn(
       "card relative cursor-pointer border-2 transition-all duration-200",
@@ -212,7 +212,7 @@ const SetupPage = () => {
             {jobRoles.map((role) => (
               <RoleCard
                 key={role.id}
-                id={role.id}
+                id={role.id} // id is still passed as a prop here, but not used in RoleCard component
                 title={role.title}
                 icon={role.icon}
                 description={role.description}
@@ -229,7 +229,7 @@ const SetupPage = () => {
             {experienceLevels.map((level) => (
               <LevelCard
                 key={level.id}
-                id={level.id}
+                id={level.id} // id is still passed as a prop here, but not used in LevelCard component
                 title={level.title}
                 description={level.description}
                 selected={selectedLevel === level.id}
