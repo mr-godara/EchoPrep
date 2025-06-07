@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">InterviewAI</h3>
+            <h3 className="text-lg font-semibold">EchoPrep</h3>
             <p className="text-sm text-muted-foreground">
               Prepare for your next job interview with our AI-powered mock interview platform.
             </p>
@@ -75,7 +75,7 @@ const Footer = () => {
         
         <div className="mt-8 border-t pt-8">
           <p className="text-center text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} InterviewAI. All rights reserved.
+            &copy; {new Date().getFullYear()} EchoPrep. All rights reserved.
           </p>
         </div>
       </div>

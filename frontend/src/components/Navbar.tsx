@@ -24,7 +24,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-primary">InterviewAI</span>
+          <span className="text-xl font-bold text-primary">EchoPrep</span>
         </Link>
 
         {/* Desktop menu */}

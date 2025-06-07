@@ -100,7 +100,7 @@ const HomePage = () => {
           <div className="mx-auto mb-16 max-w-3xl text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">Success Stories</h2>
             <p className="text-lg text-muted-foreground">
-              See how InterviewAI has helped candidates land their dream jobs.
+              See how EchoPrep has helped candidates land their dream jobs.
             </p>
           </div>
 
@@ -110,7 +110,7 @@ const HomePage = () => {
                 {"★".repeat(5)}
               </div>
               <p className="mb-4 italic text-muted-foreground">
-                "After practicing with InterviewAI for two weeks, I felt so much more confident in my real interview. I got the job at a top tech company!"
+                "After practicing with EchoPrep for two weeks, I felt so much more confident in my real interview. I got the job at a top tech company!"
               </p>
               <div className="flex items-center">
                 <div className="h-10 w-10 rounded-full bg-gray-300"></div>
@@ -142,7 +142,7 @@ const HomePage = () => {
                 {"★".repeat(5)}
               </div>
               <p className="mb-4 italic text-muted-foreground">
-                "As a career changer, I was nervous about technical interviews. InterviewAI helped me practice until I felt ready and I landed my first role!"
+                "As a career changer, I was nervous about technical interviews. EchoPrep helped me practice until I felt ready and I landed my first role!"
               </p>
               <div className="flex items-center">
                 <div className="h-10 w-10 rounded-full bg-gray-300"></div>
