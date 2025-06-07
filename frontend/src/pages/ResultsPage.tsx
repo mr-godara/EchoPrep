@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { formatDate } from '../lib/utils.js';
 
 const ResultsPage = () => {
-  const { result: contextResult, isInterviewComplete, config: contextConfig, /* questions: contextQuestions, */ isHrScheduledInterview: contextIsHrScheduled } = useInterview(); // Removed contextQuestions
+  const { result: contextResult, isInterviewComplete, config: contextConfig /*, questions: contextQuestions, isHrScheduledInterview: contextIsHrScheduled */ } = useInterview(); // Removed contextQuestions and contextIsHrScheduled
   const { user } = useAuth();
   const navigate = useNavigate();
   const { interviewId } = useParams<{ interviewId?: string }>();
