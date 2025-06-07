@@ -23,6 +23,7 @@ interface Interview {
 const HRDashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate(); // Get navigate function
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [showNewInterview, setShowNewInterview] = useState(false);
   const [newInterview, setNewInterview] = useState({
@@ -46,8 +47,8 @@ const HRDashboard: React.FC = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-
-      const response = await fetch('/api/interviews', {
+ 
+      const response = await fetch(`${API_BASE_URL}/api/interviews`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -61,7 +62,7 @@ const HRDashboard: React.FC = () => {
       const data = await response.json();
       setInterviews(data);
     } catch (error) {
-      console.error('Error fetching interviews:', error);
+      // console.error('Error fetching interviews:', error);
       setError(error instanceof Error ? error.message : 'Error fetching interviews');
     }
   };
@@ -75,8 +76,8 @@ const HRDashboard: React.FC = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-
-      const response = await fetch('/api/interviews', {
+ 
+      const response = await fetch(`${API_BASE_URL}/api/interviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,8 +116,8 @@ const HRDashboard: React.FC = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-
-      const response = await fetch(`/api/interviews/${interviewId}/cancel`, {
+ 
+      const response = await fetch(`${API_BASE_URL}/api/interviews/${interviewId}/cancel`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -130,7 +131,7 @@ const HRDashboard: React.FC = () => {
 
       await fetchInterviews();
     } catch (error) {
-      console.error('Error cancelling interview:', error);
+      // console.error('Error cancelling interview:', error);
       setError(error instanceof Error ? error.message : 'Error cancelling interview');
     }
   };
@@ -143,8 +144,8 @@ const HRDashboard: React.FC = () => {
       if (!token) {
         throw new Error('No authentication token found');
       }
-
-      const response = await fetch(`/api/interview-results/interview/${interviewId}`, {
+ 
+      const response = await fetch(`${API_BASE_URL}/api/interview-results/interview/${interviewId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -176,7 +177,7 @@ const HRDashboard: React.FC = () => {
       // Navigate to the detailed results page, adding a query param to indicate the ID type
       navigate(`/results/${interviewId}?by=schedule`);
     } catch (error) {
-      console.error('Error fetching interview results:', error);
+      // console.error('Error fetching interview results:', error);
       setError(error instanceof Error ? error.message : 'Error fetching interview results');
       alert('Could not retrieve interview results. Please try again later.');
     }

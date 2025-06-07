@@ -19,9 +19,9 @@ interface Interview {
     email: string;
   };
   scheduledFor: string;
-  duration: number; // Duration in minutes
-  jobRole: string; // Job role for the interview
-  experienceLevel: string; // Experience level for the interview
+  duration: number; 
+  jobRole: string; 
+  experienceLevel: string; 
   roomLink: string;
   status: 'scheduled' | 'completed' | 'cancelled';
 }
@@ -30,6 +30,7 @@ const InterviewRoomPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { startInterview } = useInterview();
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -40,18 +41,17 @@ const InterviewRoomPage = () => {
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [roomExpired, setRoomExpired] = useState(false);
   
-  // Media stream states
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [deviceError, setDeviceError] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchInterview = async () => {
       try {
-        const response = await fetch(`/api/interviews/room/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/interviews/room/${id}`);
         
         if (!response.ok) {
           const errorData = await response.json();
@@ -61,15 +61,13 @@ const InterviewRoomPage = () => {
         const data = await response.json();
         setInterview(data);
         
-        // Store the interview room ID in localStorage for later reference
         if (id) {
           localStorage.setItem('interviewRoomId', id);
-          // console.log("Stored interview room ID in localStorage:", id);
+          // // console.log("Stored interview room ID in localStorage:", id);
           
-          // Also store the direct interview ID if available
           if (data._id) {
             sessionStorage.setItem('currentInterviewId', data._id);
-            // console.log("Stored interview ID in sessionStorage:", data._id);
+            // // console.log("Stored interview ID in sessionStorage:", data._id);
           }
         }
         
@@ -91,17 +89,15 @@ const InterviewRoomPage = () => {
         const interviewTime = new Date(data.scheduledFor);
     const timeDiff = interviewTime.getTime() - now.getTime();
     
-        // Check if interview time has passed more than the duration
         const endTime = addMinutes(interviewTime, data.duration || 60);
         if (now > endTime) {
           setError('This interview has already ended');
           setRoomExpired(true);
           setCanStart(false);
           
-          // Automatically mark interview as completed if it's expired
           if (data.status === 'scheduled') {
             try {
-              await fetch(`/api/interviews/auto-complete/${data._id}`, {
+              await fetch(`${API_BASE_URL}/api/interviews/auto-complete/${data._id}`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -112,18 +108,15 @@ const InterviewRoomPage = () => {
             }
           }
         }
-    // Allow joining 5 minutes before scheduled time
-        else if (timeDiff > 300000) { // 5 minutes in milliseconds
+        else if (timeDiff > 300000) { 
       setError('This interview has not started yet');
       setCanStart(false);
     } else {
       setCanStart(true);
           
-          // Calculate and set remaining time
           const remainingSecs = differenceInSeconds(endTime, now);
           setRemainingTime(remainingSecs > 0 ? remainingSecs : 0);
           
-          // Start the countdown timer
           if (remainingSecs > 0) {
             timerRef.current = window.setInterval(() => {
               setRemainingTime(prev => {
@@ -135,10 +128,8 @@ const InterviewRoomPage = () => {
                   setError('Interview time has expired');
                   setCanStart(false);
                   
-                  // If interview was in progress, automatically finalize it
                   if (interview && interview.status === 'scheduled' && stream) {
-                    // Automatically complete the interview if it was active
-                    fetch(`/api/interviews/${interview._id}/complete`, {
+                    fetch(`${API_BASE_URL}/api/interviews/${interview._id}/complete`, {
                       method: 'PUT',
                       headers: {
                         'Content-Type': 'application/json',
@@ -146,7 +137,6 @@ const InterviewRoomPage = () => {
                       }
                     }).catch(err => console.error('Error completing interview:', err));
                     
-                    // If a stream exists, the interview was in progress
                     stream.getTracks().forEach(track => track.stop());
                   }
                   
@@ -169,15 +159,13 @@ const InterviewRoomPage = () => {
       fetchInterview();
     }
     
-    // Clean up the timer on unmount
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
-  }, [id]);
+  }, [id, API_BASE_URL, interview, stream]); // Added API_BASE_URL, interview, stream
 
-  // Format remaining time as HH:MM:SS
   const formatRemainingTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -186,7 +174,6 @@ const InterviewRoomPage = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Setup media devices (camera & mic)
   useEffect(() => {
     const setupMediaDevices = async () => {
       try {
@@ -199,12 +186,10 @@ const InterviewRoomPage = () => {
         
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
-          // Ensure video plays properly
           videoRef.current.muted = true;
           videoRef.current.autoplay = true;
           videoRef.current.playsInline = true;
           
-          // Force the video to start playing
           videoRef.current.play().catch(e => {
             console.error("Error playing video:", e);
           });
@@ -219,13 +204,12 @@ const InterviewRoomPage = () => {
       setupMediaDevices();
     }
 
-    // Cleanup function to stop all tracks when component unmounts
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [isLoading, interview, canStart, roomExpired]);
+  }, [isLoading, interview, canStart, roomExpired, stream]); // Added stream
 
   const toggleVideo = () => {
     if (stream) {
@@ -247,7 +231,6 @@ const InterviewRoomPage = () => {
     }
   };
 
-  // Add helper functions to format these values
   const formatJobRole = (role: string) => {
     if (!role) return 'N/A';
     return role.split('-').map(word => 
@@ -260,7 +243,6 @@ const InterviewRoomPage = () => {
     return level.charAt(0).toUpperCase() + level.slice(1);
   };
 
-  // Update the handleStart function to pass job role and experience level to the interview context
   const handleStart = () => {
     if (!interview || !canStart || roomExpired) return;
 
@@ -274,9 +256,7 @@ const InterviewRoomPage = () => {
       return;
     }
 
-    // Store stream in session storage or context for use in the interview
     if (stream) {
-      // Store ID information before navigating
       if (id) {
         localStorage.setItem('interviewRoomId', id);
       }
@@ -284,15 +264,16 @@ const InterviewRoomPage = () => {
         sessionStorage.setItem('currentInterviewId', interview._id);
       }
       
-      // Pass stream and interview details to interview context
       startInterview({ 
         mediaStream: stream,
         jobRole: interview.jobRole as any,
         experienceLevel: interview.experienceLevel as any,
-        interviewId: interview._id
+        interviewId: interview._id,
+        isHrScheduled: true, // Assuming interviews joined via room link are HR scheduled
+        durationInSeconds: interview.duration * 60
       });
       
-      // console.log("Starting interview with ID:", interview._id);
+      // // console.log("Starting interview with ID:", interview._id);
     navigate('/interview');
     } else {
       setError('Camera and microphone are required for the interview');
@@ -367,7 +348,6 @@ const InterviewRoomPage = () => {
             </div>
           </div>
           
-          {/* Camera preview */}
           <div className="mb-6">
             <h2 className="mb-3 font-semibold">Camera Preview</h2>
             <div className="relative aspect-video w-full bg-black rounded-md overflow-hidden">
@@ -439,7 +419,7 @@ const InterviewRoomPage = () => {
               />
             </div>
 
-            {error && (
+            {error && !roomExpired && ( // Only show general form error if room hasn't expired
               <div className="mb-4 rounded-md bg-destructive/10 p-3 text-destructive">
                 {error}
               </div>
@@ -459,14 +439,14 @@ const InterviewRoomPage = () => {
               </p>
             )}
             
-            {!stream && !deviceError && !roomExpired && (
+            {!stream && !deviceError && !roomExpired && canStart && (
               <p className="mt-3 text-center text-sm text-muted-foreground">
                 Please allow access to your camera and microphone to proceed.
               </p>
             )}
             
             {roomExpired && (
-              <p className="mt-3 text-center text-sm text-muted-foreground">
+              <p className="mt-3 text-center text-sm text-destructive">
                 This interview has expired. Please contact the interviewer for rescheduling.
               </p>
             )}

@@ -14,6 +14,7 @@ const ResultsPage = () => {
   const [pageResult, setPageResult] = useState<InterviewResult | null>(null);
   const [isLoadingPageResult, setIsLoadingPageResult] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   
   const displayResult = interviewId ? pageResult : contextResult;
@@ -34,7 +35,7 @@ const ResultsPage = () => {
             return;
           }
          
-          const response = await fetch(`/api/interview-results/${id}`, {
+          const response = await fetch(`${API_BASE_URL}/api/interview-results/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
           if (!response.ok) {
@@ -56,11 +57,11 @@ const ResultsPage = () => {
       setPageResult(null);
       setPageError(null);
     }
-  }, [interviewId]); // Rerun if interviewId changes
+  }, [interviewId, API_BASE_URL]); // Rerun if interviewId changes, Added API_BASE_URL
 
   useEffect(() => {
     if (!interviewId && !isInterviewComplete && !contextResult) {
-      
+      // No console.log here, direct navigation
       navigate('/setup');
     }
   }, [interviewId, isInterviewComplete, contextResult, navigate]);

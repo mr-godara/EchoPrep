@@ -38,6 +38,7 @@ const CandidateDashboard: React.FC = () => {
   const [results, setResults] = useState<InterviewResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,14 +52,14 @@ const CandidateDashboard: React.FC = () => {
         }
 
         // Fetch scheduled interviews
-        const interviewsResponse = await fetch('/api/interviews/candidate', {
+        const interviewsResponse = await fetch(`${API_BASE_URL}/api/interviews/candidate`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
 
         // Fetch interview results
-        const resultsResponse = await fetch('/api/interview-results', {
+        const resultsResponse = await fetch(`${API_BASE_URL}/api/interview-results`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -81,7 +82,7 @@ const CandidateDashboard: React.FC = () => {
         // Show all results to the candidate, including HR-scheduled ones, as per new requirement.
         setResults(resultsData);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        // console.error('Error fetching dashboard data:', error);
         setError(error instanceof Error ? error.message : 'Error fetching data');
       } finally {
         setIsLoading(false);
@@ -89,7 +90,7 @@ const CandidateDashboard: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [API_BASE_URL]); // Added API_BASE_URL
 
   // Function to format date
   const formatDate = (dateString: string) => {

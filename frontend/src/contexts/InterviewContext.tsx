@@ -3,8 +3,8 @@ import { getRandomId } from '../lib/utils.js';
 
 // Define constants for question counts and time limits
 const QUESTION_TIME_LIMIT_SECONDS = 180; // 3 minutes per question
-const DEFAULT_PRACTICE_QUESTION_COUNT = 10; // As per previous update
-const DEFAULT_SCHEDULED_QUESTION_COUNT = 5; // Fallback if duration isn't available for a scheduled interview
+const DEFAULT_PRACTICE_QUESTION_COUNT = 10; 
+const DEFAULT_SCHEDULED_QUESTION_COUNT = 5; 
 
 // Define the types
 export type JobRole = 'web-developer' | 'app-developer' | 'ml-ai' | 'ux-designer' | 'data-scientist';
@@ -15,14 +15,13 @@ export interface InterviewConfig {
   experienceLevel: ExperienceLevel;
 }
 
-// Add interface for media stream options
 export interface InterviewStartOptions {
   mediaStream?: MediaStream;
   jobRole?: JobRole;
   experienceLevel?: ExperienceLevel;
-  interviewId?: string; // Add interview ID option
-  durationInSeconds?: number; // Added for HR scheduled interviews
-  isHrScheduled?: boolean; // Added to flag HR scheduled interviews
+  interviewId?: string; 
+  durationInSeconds?: number; 
+  isHrScheduled?: boolean; 
 }
 
 export interface InterviewQuestion {
@@ -35,25 +34,24 @@ export interface InterviewAnswer {
   questionId: string;
   text: string;
   audioUrl?: string;
-  score?: number; // 0-100
+  score?: number; 
   feedback?: string;
   strengths?: string[];
   weaknesses?: string[];
-  questionText?: string; // Added for displaying the question text on results page
+  questionText?: string; 
 }
 
 export interface InterviewResult {
-  totalScore: number; // 0-100
+  totalScore: number; 
   answers: InterviewAnswer[];
   feedback: string;
   cheatingDetected: boolean;
   strengths: string[];
   improvements: string[];
   date: Date;
-  isHrScheduled?: boolean; // Added to persist if the interview was HR-scheduled
+  isHrScheduled?: boolean; 
 }
 
-// Example questions for different roles and experience levels
 const MOCK_QUESTIONS: Record<JobRole, Record<ExperienceLevel, string[]>> = {
   'web-developer': {
     'fresher': [
@@ -187,7 +185,6 @@ const MOCK_QUESTIONS: Record<JobRole, Record<ExperienceLevel, string[]>> = {
   }
 };
 
-// Context interface
 interface InterviewContextType {
   config: InterviewConfig | null;
   setConfig: (config: InterviewConfig) => void;
@@ -233,15 +230,10 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [mediaStreamError, setMediaStreamError] = useState<string | null>(null);
   const [isInitializingMedia, setIsInitializingMedia] = useState(false);
   const [isHrScheduledInterview, setIsHrScheduledInterview] = useState(false); 
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const finishInterview = useCallback(async () => {
-    // // console.log("[InterviewContext] finishInterview called.");
-    // // console.log("[InterviewContext] Current answers:", JSON.parse(JSON.stringify(answers)));
-    // // console.log("[InterviewContext] Current config:", config);
-    // // console.log("[InterviewContext] Current questions:", JSON.parse(JSON.stringify(questions)));
-
     if (mediaStream) {
-      // // console.log("[InterviewContext] Stopping media stream tracks.");
       try {
         mediaStream.getTracks().forEach(track => {
           track.stop();
@@ -253,12 +245,10 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     
     if (answers.length > 0 && config) {
-      // // console.log("[InterviewContext] Calculating final result.");
       const answersWithScores = answers.filter(answer => answer.score !== undefined);
       const totalScore = answersWithScores.length > 0
         ? Math.round(answersWithScores.reduce((sum, answer) => sum + (answer.score || 0), 0) / answersWithScores.length)
         : 0;
-      // // console.log("[InterviewContext] Calculated totalScore:", totalScore);
 
       const allStrengths = answers.flatMap(answer => answer.strengths || []).filter(strength => strength);
       const allWeaknesses = answers.flatMap(answer => answer.weaknesses || []).filter(weakness => weakness);
@@ -304,9 +294,7 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         isHrScheduled: isHrScheduledInterview, 
       };
       
-      // // console.log("[InterviewContext] Final result object created:", JSON.parse(JSON.stringify(resultToSave)));
       setResult(resultToSave);
-      // // console.log("[InterviewContext] setResult called with the final result.");
       
       try {
         const token = localStorage.getItem('token');
@@ -321,37 +309,27 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         if (urlPath.includes('/interview-room/')) {
           interviewRoomId = urlPath.split('/interview-room/')[1];
-          // // console.log("[InterviewContext] Found interview room ID in URL:", interviewRoomId);
         } else if (storedRoomId) {
           interviewRoomId = storedRoomId;
-          // // console.log("[InterviewContext] Found interview room ID in localStorage:", interviewRoomId);
         } else if (sessionInterviewId) {
           interviewRoomId = sessionInterviewId;
-          // // console.log("[InterviewContext] Found interview ID in sessionStorage:", interviewRoomId);
-        } else {
-          // // console.log("[InterviewContext] No interviewRoomId found from URL, localStorage, or sessionStorage.");
         }
         
         if (token && config) { 
           if (interviewRoomId) {
-            // // console.log("[InterviewContext] Attempting to mark interview as completed for ID:", interviewRoomId);
             try {
-              const completeResponse = await fetch(`/api/interviews/room/${interviewRoomId}/complete`, {
+              const completeResponse = await fetch(`${API_BASE_URL}/api/interviews/room/${interviewRoomId}/complete`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
               });
-              if (completeResponse.ok) {
-                // // console.log("[InterviewContext] Successfully marked interview as completed via room ID:", interviewRoomId);
-              } else {
+              if (!completeResponse.ok) {
                 console.error("[InterviewContext] Failed to mark interview as completed via room ID. Status:", completeResponse.status);
                 try {
-                    const autoCompleteResponse = await fetch(`/api/interviews/auto-complete/${interviewRoomId}`, {
+                    const autoCompleteResponse = await fetch(`${API_BASE_URL}/api/interviews/auto-complete/${interviewRoomId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
                     });
-                    if (autoCompleteResponse.ok) {
-                        // // console.log("[InterviewContext] Successfully marked interview as completed via auto-complete for ID:", interviewRoomId);
-                    } else {
+                    if (!autoCompleteResponse.ok) {
                         console.error("[InterviewContext] Failed to mark interview as completed via auto-complete. Status:", autoCompleteResponse.status);
                     }
                 } catch (autoCompleteErr) {
@@ -361,8 +339,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             } catch (roomErr) {
               console.error('[InterviewContext] Error calling complete interview room API:', roomErr);
             }
-          } else {
-            // // console.log("[InterviewContext] No interview room ID found to mark as completed. Results will be saved without specific interview link if it's a practice session.");
           }
           
           const backendPayload = {
@@ -383,16 +359,13 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               weaknesses: answer.weaknesses || []
             }))
           };
-          // // console.log("[InterviewContext] Saving interview results to backend. Payload:", JSON.parse(JSON.stringify(backendPayload)));
           
-          fetch('/api/interview-results', {
+          fetch(`${API_BASE_URL}/api/interview-results`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify(backendPayload)
           }).then(response => {
-            if (response.ok) {
-              // // console.log("[InterviewContext] Interview results saved successfully to backend.");
-            } else {
+            if (!response.ok) {
               response.json().then(errData => {
                 console.error("[InterviewContext] Failed to save interview results to backend. Status:", response.status, "Error:", errData);
               }).catch(() => {
@@ -418,8 +391,7 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsInterviewInProgress(false);
     setCurrentQuestionIndex(0);
     setIsInterviewComplete(true);
-    // // console.log("[InterviewContext] finishInterview completed. isInterviewComplete set to true.");
-  }, [mediaStream, answers, config, questions, isHrScheduledInterview]);
+  }, [mediaStream, answers, config, questions, isHrScheduledInterview, API_BASE_URL]);
 
   useEffect(() => {
     return () => {
@@ -434,9 +406,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [mediaStream]);
 
   const startInterview = useCallback(async (options?: InterviewStartOptions): Promise<void> => {
-    // // console.log("[InterviewContext] Attempting to start interview. Options:", options);
-    // // console.log("[InterviewContext] Current config state BEFORE setConfig:", config);
-
     setIsLoadingQuestions(true);
     setIsInitializingMedia(true);
     setIsInterviewComplete(false); 
@@ -445,10 +414,8 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     const hrScheduledCheck = options?.isHrScheduled !== undefined ? options.isHrScheduled : !!options?.interviewId;
     setIsHrScheduledInterview(hrScheduledCheck);
-    // // console.log(`[InterviewContext] Is HR Scheduled Interview: ${hrScheduledCheck}`);
 
     if (options?.interviewId) {
-      // // console.log("[InterviewContext] Setting current interview ID in sessionStorage:", options.interviewId);
       sessionStorage.setItem('currentInterviewId', options.interviewId);
     } else {
       sessionStorage.removeItem('currentInterviewId'); 
@@ -459,13 +426,9 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (hrScheduledCheck) { 
         if (options?.durationInSeconds && options.durationInSeconds > 0) {
             questionCount = Math.max(1, Math.floor(options.durationInSeconds / QUESTION_TIME_LIMIT_SECONDS));
-            // // console.log(`[InterviewContext] HR Scheduled. Duration: ${options.durationInSeconds}s, Calculated Question Count: ${questionCount}`);
         } else {
             questionCount = DEFAULT_SCHEDULED_QUESTION_COUNT;
-            // // console.log(`[InterviewContext] HR Scheduled (ID: ${options?.interviewId || 'N/A'}) but no duration provided. Using default scheduled count: ${questionCount}`);
         }
-    } else {
-        // // console.log(`[InterviewContext] Practice Interview. Using default practice count: ${questionCount}`);
     }
     
     let sessionConfig: InterviewConfig | null = null;
@@ -475,10 +438,8 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         experienceLevel: options.experienceLevel
       };
       setConfig(sessionConfig); 
-      // // console.log("[InterviewContext] Config set from options:", sessionConfig);
     } else if (config) {
       sessionConfig = config; 
-      // // console.log("[InterviewContext] Using existing config state:", sessionConfig);
     } else {
       console.error("[InterviewContext] No job role or experience level provided, and no existing config. Cannot fetch questions.");
       const defaultQuestions = [
@@ -493,38 +454,31 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     if (options?.mediaStream) {
       setMediaStream(options.mediaStream);
-      // // console.log("[InterviewContext] Media stream provided via options.");
     } else {
       try {
-        // // console.log("[InterviewContext] Requesting media stream via navigator.mediaDevices.getUserMedia");
         const userStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
         setMediaStream(userStream);
         setMediaStreamError(null);
-        // // console.log("[InterviewContext] Media stream acquired successfully.");
       } catch (error) {
         console.error("[InterviewContext] Error getting media stream:", error);
         setMediaStreamError(error instanceof Error ? error.message : "Unknown media stream error");
       }
     }
     
-    // // console.log("[InterviewContext] Attempting to fetch questions from API.");
     try {
       const roleToFetch = sessionConfig.jobRole; 
       const levelToFetch = sessionConfig.experienceLevel;
-
-      // // console.log(`[InterviewContext] Fetching questions for role: ${roleToFetch}, level: ${levelToFetch}`);
       
       const apiRequestBody = {
         jobRole: roleToFetch,
         experienceLevel: levelToFetch,
         count: questionCount 
       };
-      // // console.log("[InterviewContext] API Request Body:", apiRequestBody);
 
-      const response = await fetch('/api/interviews/gemini/questions', {
+      const response = await fetch(`${API_BASE_URL}/api/interviews/gemini/questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -532,19 +486,14 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         body: JSON.stringify(apiRequestBody),
       });
 
-      // // console.log(`[InterviewContext] API Response Status: ${response.status}, OK: ${response.ok}`);
-
       if (response.ok) {
         const data = await response.json();
-        // // console.log("[InterviewContext] Data received from API:", data);
-
         if (data && Array.isArray(data.questions)) {
           const formattedQuestions: InterviewQuestion[] = data.questions.map((text: string) => ({
             id: getRandomId(),
             text,
           }));
           setQuestions(formattedQuestions);
-          // // console.log("[InterviewContext] Successfully fetched and set questions from API:", formattedQuestions);
         } else {
           throw new Error('Invalid question format from API');
         }
@@ -555,7 +504,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error("[InterviewContext] Error fetching questions from API, falling back to mock:", error);
       
       if (sessionConfig) {
-        // // console.log("[InterviewContext] Using mock questions as fallback for:", sessionConfig);
         const mock = MOCK_QUESTIONS[sessionConfig.jobRole]?.[sessionConfig.experienceLevel] || [];
         const mockQuestions = mock.map(text => ({
           id: getRandomId(),
@@ -576,12 +524,10 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsInterviewInProgress(true);
       setIsLoadingQuestions(false);
       setIsInitializingMedia(false);
-      // // console.log("[InterviewContext] startInterview finished processing.");
     }
-  }, [config, isHrScheduledInterview]); 
+  }, [config, isHrScheduledInterview, API_BASE_URL]); 
   
   const analyzeAnswer = async (question: string, answer: string, jobRole?: JobRole, experienceLevel?: ExperienceLevel) => {
-    // // console.log("[InterviewContext] analyzeAnswer called. Question:", question, "Answer:", answer.substring(0, 50) + "...", "Role:", jobRole, "Level:", experienceLevel);
     try {
       const requestBody = {
         question,
@@ -589,9 +535,8 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         jobRole: jobRole || config?.jobRole,
         experienceLevel: experienceLevel || config?.experienceLevel
       };
-      // // console.log("[InterviewContext] analyzeAnswer - Request Body to /api/interviews/gemini/analyze:", requestBody);
 
-      const response = await fetch('/api/interviews/gemini/analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/interviews/gemini/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -599,7 +544,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         body: JSON.stringify(requestBody),
       });
       
-      // // console.log(`[InterviewContext] analyzeAnswer - API Response Status: ${response.status}, OK: ${response.ok}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: `Failed to analyze answer: ${response.status}` }));
         console.error("[InterviewContext] analyzeAnswer - API Error Data:", errorData);
@@ -607,7 +551,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       
       const analysisResult = await response.json();
-      // // console.log("[InterviewContext] analyzeAnswer - Successfully received analysis:", analysisResult);
       return analysisResult; 
     } catch (error) {
       console.error('[InterviewContext] Error in analyzeAnswer:', error);
@@ -617,7 +560,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         strengths: [],
         weaknesses: ["AI analysis unavailable"]
       };
-      // // console.log("[InterviewContext] analyzeAnswer - Returning mock analysis due to error:", mockAnalysis);
       return mockAnalysis;
     }
   };
@@ -627,7 +569,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setMediaStreamError(null);
     
     try {
-      // // console.log("Retrying media stream request");
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
       }
@@ -662,7 +603,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const saveAnswer = async (answerData: Omit<InterviewAnswer, 'score' | 'feedback' | 'strengths' | 'weaknesses'>) => {
-    // // console.log("[InterviewContext] saveAnswer called for questionId:", answerData.questionId, "Answer text:", answerData.text.substring(0,50)+"...");
     if (!config || !questions[currentQuestionIndex]) {
       console.warn("[InterviewContext] saveAnswer - No config or current question, cannot save/analyze.");
       return;
@@ -672,7 +612,6 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       let finalAnswerData: InterviewAnswer;
       if (answerData.text && answerData.text.trim().length > 10) { 
         const questionText = questions[currentQuestionIndex].text;
-        // // console.log("[InterviewContext] saveAnswer - Meaningful answer, proceeding to analyze.");
         const analysis = await analyzeAnswer(questionText, answerData.text, config.jobRole, config.experienceLevel);
         
         finalAnswerData = {
@@ -683,9 +622,7 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           strengths: analysis.strengths || [],
           weaknesses: analysis.weaknesses || []
         };
-        // // console.log("[InterviewContext] saveAnswer - Answer analyzed. Score:", finalAnswerData.score, "Feedback:", finalAnswerData.feedback);
       } else {
-        // // console.log("[InterviewContext] saveAnswer - Answer too short or empty, saving without AI analysis.");
         finalAnswerData = {
           ...answerData,
           questionText: questions[currentQuestionIndex].text, 
@@ -702,12 +639,9 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (existingIndex >= 0) {
           updatedAnswers = [...prevAnswers];
           updatedAnswers[existingIndex] = { ...updatedAnswers[existingIndex], ...finalAnswerData };
-          // // console.log("[InterviewContext] saveAnswer - Updated existing answer for questionId:", answerData.questionId);
         } else {
           updatedAnswers = [...prevAnswers, finalAnswerData];
-          // // console.log("[InterviewContext] saveAnswer - Added new answer for questionId:", answerData.questionId);
         }
-        // // console.log("[InterviewContext] saveAnswer - Updated answers state:", JSON.parse(JSON.stringify(updatedAnswers)));
         return updatedAnswers;
       });
     } catch (error) {

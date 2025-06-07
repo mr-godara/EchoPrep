@@ -43,6 +43,7 @@ const ResultDetailPage = () => {
   const [result, setResult] = useState<InterviewResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchInterviewResult = async () => {
@@ -53,19 +54,17 @@ const ResultDetailPage = () => {
           throw new Error('No authentication token found');
         }
 
-        // Fetch by the original scheduled interview ID, not the result's direct _id
-        // This endpoint needs to exist on the backend, e.g., /api/interview-results/by-interview/{scheduledInterviewId}
-        // Or, if the HRDashboard was passing the *result's* _id, then the original endpoint was correct.
         const queryParams = new URLSearchParams(location.search);
-        const idType = queryParams.get('by'); // Check for 'by=schedule'
+        const idType = queryParams.get('by');
 
-        let fetchUrl = `/api/interview-results/${id}`; // Default: fetch by result's direct _id
+        let relativeFetchUrl = `/api/interview-results/${id}`;
         if (idType === 'schedule' && id) {
-          fetchUrl = `/api/interview-results/interview/${id}`; // Fetch by scheduled interview ID
-          // console.log(`[ResultDetailPage] Fetching by schedule ID: ${id} using URL: ${fetchUrl}`);
+          relativeFetchUrl = `/api/interview-results/interview/${id}`;
+          // // console.log(`[ResultDetailPage] Fetching by schedule ID: ${id} using URL: ${API_BASE_URL}${relativeFetchUrl}`);
         } else if (id) {
-          // console.log(`[ResultDetailPage] Fetching by result ID: ${id} using URL: ${fetchUrl}`);
+          // // console.log(`[ResultDetailPage] Fetching by result ID: ${id} using URL: ${API_BASE_URL}${relativeFetchUrl}`);
         }
+        const fetchUrl = `${API_BASE_URL}${relativeFetchUrl}`;
 
         const response = await fetch(fetchUrl, {
           headers: {
@@ -89,14 +88,14 @@ const ResultDetailPage = () => {
     };
 
     if (id) {
-      // console.log(`[ResultDetailPage] Fetching result for interview ID from URL: ${id}`);
+      // // console.log(`[ResultDetailPage] Fetching result for interview ID from URL: ${id}`);
       fetchInterviewResult();
     } else {
-      // console.log("[ResultDetailPage] No ID in URL params.");
+      // // console.log("[ResultDetailPage] No ID in URL params.");
       setError("No interview ID provided to fetch results.");
       setIsLoading(false);
     }
-  }, [id, location.search]); // Add location.search to dependencies
+  }, [id, location.search, API_BASE_URL]); // Add API_BASE_URL
 
   // Access control logic removed as per new requirement for users/candidates to view HR scheduled results.
   // The page will now rely on the user being authenticated (if needed by the API for fetching results)
